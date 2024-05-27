@@ -6,6 +6,7 @@ namespace ZigSelector;
 
 public class VersionSelector
 {
+    const char SEPARATOR = ';';
     const string PATH = "PATH";
 
     public State State { get => _state; }
@@ -72,7 +73,6 @@ public class VersionSelector
 
     private DirectoryInfo[] GeneratePaths()
     {
-        const char SEPARATOR = ';';
         string? paths = Environment.GetEnvironmentVariable(PATH);
         if (paths is null)
             return [];
@@ -91,7 +91,7 @@ public class VersionSelector
         {
             if (i == _zigIndex)
             {
-                newPath.Append($"{newZigPath.FullName};");
+                newPath.Append($"{newZigPath.FullName}{SEPARATOR}");
                 continue;
             }
 

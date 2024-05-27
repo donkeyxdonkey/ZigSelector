@@ -1,6 +1,7 @@
 {
   "Configuration": {
     "BinaryFolder": "Bingo",
-    "Path":  "Fice"
+    "Path": "Fice",
+    "":  ""
   }
 }

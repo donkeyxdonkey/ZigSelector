@@ -13,6 +13,17 @@ public class VersionSelector
 
     public int Index { get => _index; set => _index = value; }
 
+    private DirectoryInfo[] ZigBinaries
+    {
+        get
+        {
+            if (!Directory.Exists(_config.BinaryFolder))
+                throw new DirectoryNotFoundException("");
+
+            return new DirectoryInfo(_config.BinaryFolder).GetDirectories("*");
+        }
+    }
+
     private readonly State _state;
     private readonly DirectoryInfo[] _paths;
     private readonly Configuration _config;
@@ -35,14 +46,10 @@ public class VersionSelector
 
     private void ListBinaries()
     {
-        if (!Directory.Exists(_config.BinaryFolder))
-            throw new DirectoryNotFoundException("");
-
         bool pathFound = false;
-
         int index = 0;
 
-        foreach (DirectoryInfo zigBin in new DirectoryInfo(_config.BinaryFolder).GetDirectories("*"))
+        foreach (DirectoryInfo zigBin in ZigBinaries)
         {
             if (!pathFound)
             {
@@ -98,8 +105,6 @@ public class VersionSelector
             newPath.Append($"{_paths[i].FullName.Replace("\\", "\\\\")};");
         }
 
-        Environment.SetEnvironmentVariable("PATH", newPath.ToString()[..^1]); // ta bort sista ;
-
-
+        Environment.SetEnvironmentVariable(PATH, newPath.ToString()[..^1]); // ta bort sista ;
     }
 }

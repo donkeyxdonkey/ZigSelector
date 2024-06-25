@@ -1,7 +1,5 @@
 {
   "Configuration": {
-    "BinaryFolder": "D:\\bin\\Zig",
-    "Path": "Fice",
-    "": ""
+    "BinaryFolder": "D:\\bin\\Zig"
   }
 }

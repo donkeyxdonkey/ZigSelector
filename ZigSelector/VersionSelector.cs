@@ -151,4 +151,9 @@ public class VersionSelector
         Console.Write(CURSOR);
         Console.ForegroundColor = ConsoleColor.White; // kanske inte behövs...
     }
+
+    internal void Terminate()
+    {
+        _state = State.Terminate;
+    }
 }

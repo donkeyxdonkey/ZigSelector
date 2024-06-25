@@ -44,10 +44,18 @@ internal class Program
             case ConsoleKey.Enter:
                 EnterPressed(ref zigSelector);
                 break;
+            case ConsoleKey.X:
+                ExitApplication(ref zigSelector);
+                break;
             default:
                 Navigate(consoleKey, ref zigSelector);
                 break;
         }
+    }
+
+    private static void ExitApplication(ref VersionSelector zigSelector)
+    {
+        zigSelector.Terminate();
     }
 
     private static void Navigate(ConsoleKey consoleKey, ref VersionSelector zigSelector)

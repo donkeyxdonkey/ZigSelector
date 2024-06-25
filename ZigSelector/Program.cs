@@ -4,7 +4,7 @@ using ZigSelector.Utility;
 
 internal class Program
 {
-    const int MIN = 0;
+    const int MIN = 2;
     static int MAX = 0;
 
     private static void Main(string[] args)
@@ -13,9 +13,9 @@ internal class Program
         {
             using (DeferCursor.Defer())
             {
-                VersionSelector zigSelector = new();
+                VersionSelector zigSelector = new(offset: MIN);
                 KeyListener listener = new();
-                MAX = zigSelector.Length - 1;
+                MAX = zigSelector.Length + 1;
 
                 while (zigSelector.State == State.Active)
                 {
@@ -63,7 +63,7 @@ internal class Program
         switch (consoleKey)
         {
             case ConsoleKey.UpArrow:
-                if (zigSelector.Index == 0)
+                if (zigSelector.Index == MIN)
                     return;
                 break;
             default:                                        /* DownArrow */

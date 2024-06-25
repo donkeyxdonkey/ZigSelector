@@ -35,9 +35,10 @@ public class VersionSelector
 
     private DirectoryInfo? _currentBinary;
     private int _index;
+    private int _offset;
     private int _zigIndex;
 
-    public VersionSelector()
+    public VersionSelector(int offset)
     {
         _paths = GeneratePaths();
         _state = _paths.Length != 0 ? State.Active : State.Terminate;
@@ -46,13 +47,22 @@ public class VersionSelector
         _zigIndex = -1;
 
         ListBinaries();
-        //UpdatePath(new DirectoryInfo("korv"));
+        _index += offset;
+        _offset = offset;
     }
 
     private void ListBinaries()
     {
         bool pathFound = false;
         int index = 0;
+
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.Write(" ++++++++++++++++++++ ");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write("ZIG PATH SELECTOR");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.WriteLine(" ++++++++++++++++++++\n");
+        Console.ForegroundColor = ConsoleColor.White;
 
         foreach (DirectoryInfo zigBin in ZigBinaries)
         {
@@ -74,6 +84,15 @@ public class VersionSelector
             Console.WriteLine($" {zigBin.FullName}");
             index++;
         }
+
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.Write($"{Environment.NewLine} Keys: ");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write("Enter, UpArrow, DownArrow ");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.Write("Exit: ");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine("X");
     }
 
     private void LocateZigPath(DirectoryInfo zigBin, out bool pathFound)
@@ -109,7 +128,7 @@ public class VersionSelector
         {
             if (i == _zigIndex)
             {
-                newPath.Append($"{ZigBinaries[_index].FullName}{SEPARATOR}");
+                newPath.Append($"{ZigBinaries[_index - _offset].FullName}{SEPARATOR}");
                 continue;
             }
 

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using ZigSelector;
 using ZigSelector.Utility;
 
@@ -11,6 +12,11 @@ internal class Program
     {
         try
         {
+            ParseArgs(args);
+
+            string newVersion = string.Empty;
+            bool exitPressed = false;
+
             using (DeferCursor.Defer())
             {
                 VersionSelector zigSelector = new(offset: MIN);
@@ -19,11 +25,22 @@ internal class Program
 
                 while (zigSelector.State == State.Active)
                 {
-                    HandleKeyPress(listener.Listen(), ref zigSelector);
+                    HandleKeyPress(listener.Listen(), ref zigSelector, out exitPressed);
                 }
+
+                newVersion = zigSelector.SelectedVersion;
             }
 
-            ListVersion();
+            if (exitPressed)
+                return;
+
+            RunCommand("zig", "version", printStdOut: true, message: "Current Zig Version: ");
+
+            Console.WriteLine(newVersion);
+            Console.Write("For changes to take effect run: ");
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.WriteLine("update_environment.ps1");
+            Console.ForegroundColor = ConsoleColor.White;
         }
         catch (FileNotFoundException ex)
         {
@@ -37,15 +54,58 @@ internal class Program
         }
     }
 
-    private static void HandleKeyPress(ConsoleKey consoleKey, ref VersionSelector zigSelector)
+    private static void ParseArgs(string[] args)
     {
+        if (args.Length == 0)
+            return;
+
+        const string PATH = "PATH";
+
+        Console.WriteLine($"BEGIN Reading args{Environment.NewLine}");
+
+        foreach (string arg in args.Select(arg => arg.ToLower()).ToArray())
+        {
+            switch (arg)
+            {
+                case "--help":
+                    Console.WriteLine("COMMANDS\n\n");
+                    Console.WriteLine("--help: command information.");
+                    Console.WriteLine("--add-to-path: generates path for ZigSelector at it's current location.");
+                    break;
+                case "--add-to-path":
+                    string? paths = Environment.GetEnvironmentVariable(PATH, EnvironmentVariableTarget.User);
+                    DirectoryInfo cwd = new(AppContext.BaseDirectory);
+                    if (paths is null || paths.Contains(cwd.FullName)) // #1 enbart för att slippa nullchecks
+                    {
+                        Console.WriteLine("Already added to path.");
+                        break;
+                    }
+
+                    Environment.SetEnvironmentVariable(PATH, string.Concat(paths, ";", cwd.FullName), EnvironmentVariableTarget.User);
+                    Console.WriteLine($"Path added: {cwd.FullName}");
+                    break;
+                default:
+                    Console.WriteLine($"Unknown argument: {arg}");
+                    return;
+            }
+        }
+
+        Console.WriteLine("END Reading args");
+        Console.ReadLine();
+        Console.Clear();
+        Console.SetCursorPosition(0, 0);
+    }
+
+    private static void HandleKeyPress(ConsoleKey consoleKey, ref VersionSelector zigSelector, out bool exitPressed)
+    {
+        exitPressed = false;
         switch (consoleKey)
         {
             case ConsoleKey.Enter:
                 EnterPressed(ref zigSelector);
                 break;
             case ConsoleKey.X:
-                ExitApplication(ref zigSelector);
+                ExitApplication(ref zigSelector, out exitPressed);
                 break;
             default:
                 Navigate(consoleKey, ref zigSelector);
@@ -53,8 +113,9 @@ internal class Program
         }
     }
 
-    private static void ExitApplication(ref VersionSelector zigSelector)
+    private static void ExitApplication(ref VersionSelector zigSelector, out bool exitPressed)
     {
+        exitPressed = true;
         zigSelector.Terminate();
     }
 
@@ -79,12 +140,15 @@ internal class Program
         zigSelector.UpdatePath();
     }
 
-    static void ListVersion(string command = "zig", string arguments = "version")
+    static void RunCommand(string command, string arguments, bool printStdOut = false, string message = "")
     {
+        const string VERB = "runas";
+
         try
         {
             ProcessStartInfo startInfo = new()
             {
+                Verb = VERB,
                 FileName = command,
                 Arguments = arguments,
                 RedirectStandardOutput = true,
@@ -97,10 +161,18 @@ internal class Program
                 if (process is null)
                     return;
 
+                if (!printStdOut)
+                {
+                    process.WaitForExit();
+                    return;
+                }
+
                 using (StreamReader reader = process.StandardOutput)
                 {
-                    Console.WriteLine($"Current Zig Version: {reader.ReadToEnd()}");
+                    Console.WriteLine($"{message}{reader.ReadToEnd()[..^1]}"); // ta bort sista charren på readern som är \n
                 }
+
+                process.WaitForExit();
             }
         }
         catch (Exception ex)

@@ -29,6 +29,8 @@ public class VersionSelector
         }
     }
 
+    public string SelectedVersion { get => _selectedVersion; }
+
     private State _state;
     private readonly DirectoryInfo[] _paths;
     private readonly Configuration _config;
@@ -37,6 +39,7 @@ public class VersionSelector
     private int _index;
     private int _offset;
     private int _zigIndex;
+    private string _selectedVersion;
 
     public VersionSelector(int offset)
     {
@@ -45,6 +48,7 @@ public class VersionSelector
         _config = Helper.GetConfiguration();
         _index = -1;
         _zigIndex = -1;
+        _selectedVersion = string.Empty;
 
         ListBinaries();
         _index += offset;
@@ -128,7 +132,10 @@ public class VersionSelector
         {
             if (i == _zigIndex)
             {
-                newPath.Append($"{ZigBinaries[_index - _offset].FullName}{SEPARATOR}");
+                string zigPath = ZigBinaries[_index - _offset].FullName;
+                newPath.Append($"{zigPath}{SEPARATOR}");
+                string[] bin = zigPath.Split('\\');
+                _selectedVersion = $"Version Selected:    {bin[^1]}";
                 continue;
             }
 
